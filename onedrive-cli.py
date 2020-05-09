@@ -7,7 +7,7 @@ import os
 import sys
 
 def get_access_token(auth_url, client_id, secret, refresh_token):
-    """ Query site24x7 api, return an oauth access token """
+    """ Query onedrive api, return an oauth access token """
     payload = {
         'client_id': client_id,
         'client_secret': secret,

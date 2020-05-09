@@ -5,6 +5,7 @@
     "onedrive": {
         "client_id": "REDACTED",
         "client_secret": "REDACTED",
-        "refresh_token": "REDACTED"
+        "refresh_token": "REDACTED",
+        "root_folder": "/This/Folder/path/must/exist/in/your/Onedrive"
     }
 }
