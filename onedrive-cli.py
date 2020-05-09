@@ -60,29 +60,43 @@ for item in json.loads(r.content.decode('latin1'))['value']:
         headers={'Authorization': 'bearer ' + access_token})
 """
 
-print('Upload items:')
-USIZE = 327680
-for fpath in sys.argv[1:]:
-    fsize = os.stat(fpath).st_size
-    fname = os.path.basename(fpath)
-    with open(fpath, 'rb') as f:
-        payload = '{"item": {"@microsoft.graph.conflictBehavior": "rename" }}'
-        r = requests.post(f'https://graph.microsoft.com/v1.0/me/drive/root:{folder}/{fname}:/createUploadSession', data=payload,
-            headers={'Authorization': 'bearer ' + access_token, 'Content-Type': 'application/x-www-form-urlencoded'})
-        if http.client.HTTPConnection.debuglevel:
-            print(json.dumps(json.loads(r.content.decode('latin1')), indent=4))
-        uploadUrl = json.loads(r.content.decode('latin1'))['uploadUrl']
-        while f.tell() < fsize:
-            start = f.tell()
-            data = b''
-            while len(data) < USIZE and f.tell() < fsize:
-                data += f.read(USIZE)
-            end = start + len(data) - 1
-            headers = {
-                'Content-Length': f'{len(data)}',
-                'Content-Range': f'bytes {start}-{end}/{fsize}'
-            }
-            print(f'{fname} bytes {start}-{end}/{fsize} {int(end*100/fsize)}%')
-            r = requests.put(uploadUrl, headers = headers, data = data)
-            if http.client.HTTPConnection.debuglevel:
-                print(json.dumps(json.loads(r.content.decode('latin1')), indent=4))
+def usage():
+    print('OneDrive-CLI API Wrapper. Usage:')
+    print('onedrive-cli.py COMMAND ARGS')
+    print('COMMAND can be one of:')
+    print('upload - Uploads the files received as arguments to the onedrive folder')
+    print('         onedrive-cli.py upload file1 file2 ...')
+
+if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        usage()
+        exit(1)
+    elif sys.argv[1] == 'upload':
+        USIZE = 327680
+        for fpath in sys.argv[2:]:
+            fsize = os.stat(fpath).st_size
+            fname = os.path.basename(fpath)
+            with open(fpath, 'rb') as f:
+                payload = '{"item": {"@microsoft.graph.conflictBehavior": "rename" }}'
+                r = requests.post(f'https://graph.microsoft.com/v1.0/me/drive/root:{folder}/{fname}:/createUploadSession', data=payload,
+                    headers={'Authorization': 'bearer ' + access_token, 'Content-Type': 'application/x-www-form-urlencoded'})
+                if http.client.HTTPConnection.debuglevel:
+                    print(json.dumps(json.loads(r.content.decode('latin1')), indent=4))
+                uploadUrl = json.loads(r.content.decode('latin1'))['uploadUrl']
+                while f.tell() < fsize:
+                    start = f.tell()
+                    data = b''
+                    while len(data) < USIZE and f.tell() < fsize:
+                        data += f.read(USIZE)
+                    end = start + len(data) - 1
+                    headers = {
+                        'Content-Length': f'{len(data)}',
+                        'Content-Range': f'bytes {start}-{end}/{fsize}'
+                    }
+                    print(f'Uploading {fname}. Bytes {start}-{end}/{fsize} {int(end*100/fsize)}%')
+                    r = requests.put(uploadUrl, headers = headers, data = data)
+                    if http.client.HTTPConnection.debuglevel:
+                        print(json.dumps(json.loads(r.content.decode('latin1')), indent=4))
+    else:
+        usage()
+        exit(1)
