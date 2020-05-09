@@ -1,0 +1,10 @@
+{
+    "database": {
+        "name": "wp_something"
+    },
+    "onedrive": {
+        "client_id": "REDACTED",
+        "client_secret": "REDACTED",
+        "refresh_token": "REDACTED"
+    }
+}
