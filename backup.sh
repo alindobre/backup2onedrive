@@ -3,6 +3,7 @@
 set -e
 
 DBNAME=`jq -r .database.name <~/backup.json`
+DOCROOT=`jq -r .docroot.name <~/backup.json`
 [[ -d /usr/local/backups ]] || mkdir /usr/local/backups
 cd /usr/local/backups
 
@@ -10,7 +11,7 @@ printf -v TIMESTAMP '%(%Y-%V-%u-%m%d-%H%M%S-%s)T'
 echo TIMESTAMP: $TIMESTAMP
 IFS=- read YEAR WEEK DOW _ <<<$TIMESTAMP
 
-tar cf docroot-$TIMESTAMP.tar --sort=name -C /var/www/wordpress .
+tar cf docroot-$TIMESTAMP.tar --sort=name -C $DOCROOT .
 mysqldump --add-drop-table $DBNAME >mysql-$TIMESTAMP.dump
 
 UPLOAD=()

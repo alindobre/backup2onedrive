@@ -2,6 +2,9 @@
     "database": {
         "name": "wp_something"
     },
+    "docroot": {
+        "name": "/var/www/html"
+    },
     "onedrive": {
         "client_id": "REDACTED",
         "client_secret": "REDACTED",
