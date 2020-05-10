@@ -163,7 +163,7 @@ if __name__ == '__main__':
         items = sys.argv[3:]
         listing = onedrive_list(src_folder)
         for item in items:
-            if item in listing;
+            if item in listing:
                 onedrive_delete(listing[item])
     else:
         usage()
