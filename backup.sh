@@ -38,6 +38,6 @@ else
   DELETE+=(mysql-$YEAR-$WEEK.dump.xz)
 fi
 
-python3 -u /home/ubuntu/onedrive-cli.py upload ${UPLOAD[*]}
+python3 -u /home/ubuntu/onedrive_cli.py upload ${UPLOAD[*]}
 echo upload done
 rm -fv ${DELETE[*]}
