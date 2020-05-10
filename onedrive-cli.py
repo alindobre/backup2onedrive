@@ -6,6 +6,14 @@ import json
 import os
 import sys
 
+
+def usage():
+    print('OneDrive-CLI API Wrapper. Usage:')
+    print('onedrive-cli.py COMMAND ARGS')
+    print('COMMAND can be one of:')
+    print('upload - Uploads the files received as arguments to the onedrive folder')
+    print('         onedrive-cli.py upload file1 file2 ...')
+
 def get_access_token(auth_url, client_id, secret, refresh_token):
     """ Query onedrive api, return an oauth access token """
     payload = {
@@ -27,35 +35,6 @@ def get_access_token(auth_url, client_id, secret, refresh_token):
         raise
 
     return r
-
-"""
-print('Create folder:')
-payload = '{"name": "New Folder", "folder": { }, "@microsoft.graph.conflictBehavior": "rename" }'
-r = requests.post(f'https://graph.microsoft.com/v1.0/me/drive/root:{folder}:/children', data = payload,
-    headers={'Authorization': 'bearer ' + access_token, 'Content-Type': 'application/json'})
-print(json.dumps(json.loads(r.content.decode('latin1')), indent=4))
-print('-> ' + json.loads(r.content.decode('latin1'))['webUrl'])
-
-print('File listing:')
-r = requests.get(f'https://graph.microsoft.com/v1.0/me/drive/root:{folder}:/children',
-    headers={'Authorization': 'bearer ' + access_token})
-for item in json.loads(r.content.decode('latin1'))['value']:
-    print('-> ' + item['name'] + ' ' + item['id'])
-
-print('Delete items:')
-for item in json.loads(r.content.decode('latin1'))['value']:
-    print('-> ' + item['name'] + ' ' + item['id'])
-    r = requests.delete(f'https://graph.microsoft.com/v1.0/me/drive/items/{item["id"]}',
-        headers={'Authorization': 'bearer ' + access_token})
-"""
-
-def usage():
-    print('OneDrive-CLI API Wrapper. Usage:')
-    print('onedrive-cli.py COMMAND ARGS')
-    print('COMMAND can be one of:')
-    print('upload - Uploads the files received as arguments to the onedrive folder')
-    print('         onedrive-cli.py upload file1 file2 ...')
-
 
 def onedrive_upload(local_files, remote_destination):
     USIZE = 327680
