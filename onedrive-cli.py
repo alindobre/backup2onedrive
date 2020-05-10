@@ -36,7 +36,9 @@ access_token = get_access_token(
     config['onedrive']['refresh_token']
 )
 
-folder = config['onedrive']['root_folder']
+folder = None
+if 'root_folder' in config['onedrive']:
+    folder = config['onedrive']['root_folder']
 
 """
 print('Create folder:')
@@ -66,6 +68,36 @@ def usage():
     print('upload - Uploads the files received as arguments to the onedrive folder')
     print('         onedrive-cli.py upload file1 file2 ...')
 
+
+def onedrive_upload(local_files, remote_destination):
+    USIZE = 327680
+    for fpath in local_files:
+        fsize = os.stat(fpath).st_size
+        fname = os.path.basename(fpath)
+        with open(fpath, 'rb') as f:
+            payload = '{"item": {"@microsoft.graph.conflictBehavior": "rename" }}'
+            r = requests.post(f'https://graph.microsoft.com/v1.0/me/drive/root:{remote_destination}/{fname}:/createUploadSession', data=payload,
+                headers={'Authorization': 'bearer ' + access_token, 'Content-Type': 'application/x-www-form-urlencoded'})
+            if http.client.HTTPConnection.debuglevel:
+                print(json.dumps(json.loads(r.content.decode('latin1')), indent=4))
+            uploadUrl = json.loads(r.content.decode('latin1'))['uploadUrl']
+            while f.tell() < fsize:
+                start = f.tell()
+                data = b''
+                while len(data) < USIZE and f.tell() < fsize:
+                    data += f.read(USIZE)
+                end = start + len(data) - 1
+                headers = {
+                    'Content-Length': f'{len(data)}',
+                    'Content-Range': f'bytes {start}-{end}/{fsize}'
+                }
+                if verbose:
+                    print(f'Uploading {fname}. Bytes {start}-{end}/{fsize} {int(end*100/fsize)}%')
+                r = requests.put(uploadUrl, headers = headers, data = data)
+                if http.client.HTTPConnection.debuglevel:
+                    print(json.dumps(json.loads(r.content.decode('latin1')), indent=4))
+
+
 if __name__ == '__main__':
     if len(sys.argv) == 1:
         usage()
@@ -84,32 +116,10 @@ if __name__ == '__main__':
         http.client.HTTPConnection.debuglevel = 1
         sys.argv.remove('--debug')
     if sys.argv[1] == 'upload':
-        USIZE = 327680
-        for fpath in sys.argv[2:]:
-            fsize = os.stat(fpath).st_size
-            fname = os.path.basename(fpath)
-            with open(fpath, 'rb') as f:
-                payload = '{"item": {"@microsoft.graph.conflictBehavior": "rename" }}'
-                r = requests.post(f'https://graph.microsoft.com/v1.0/me/drive/root:{folder}/{fname}:/createUploadSession', data=payload,
-                    headers={'Authorization': 'bearer ' + access_token, 'Content-Type': 'application/x-www-form-urlencoded'})
-                if http.client.HTTPConnection.debuglevel:
-                    print(json.dumps(json.loads(r.content.decode('latin1')), indent=4))
-                uploadUrl = json.loads(r.content.decode('latin1'))['uploadUrl']
-                while f.tell() < fsize:
-                    start = f.tell()
-                    data = b''
-                    while len(data) < USIZE and f.tell() < fsize:
-                        data += f.read(USIZE)
-                    end = start + len(data) - 1
-                    headers = {
-                        'Content-Length': f'{len(data)}',
-                        'Content-Range': f'bytes {start}-{end}/{fsize}'
-                    }
-                    if verbose:
-                        print(f'Uploading {fname}. Bytes {start}-{end}/{fsize} {int(end*100/fsize)}%')
-                    r = requests.put(uploadUrl, headers = headers, data = data)
-                    if http.client.HTTPConnection.debuglevel:
-                        print(json.dumps(json.loads(r.content.decode('latin1')), indent=4))
+        if folder:
+            onedrive_upload(sys.argv[2:], folder)
+        else:
+            onedrive_upload(sys.argv[2:-1], sys.argv[-1])
     elif sys.argv[1] == 'list':
         link = f'https://graph.microsoft.com/v1.0/me/drive/root:{folder}:/children'
         while link:
