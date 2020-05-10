@@ -10,9 +10,7 @@ import sys
 def usage():
     print('OneDrive-CLI API Wrapper. Usage:')
     print('onedrive-cli.py COMMAND ARGS')
-    print('COMMAND can be one of:')
-    print('upload - Uploads the files received as arguments to the onedrive folder')
-    print('         onedrive-cli.py upload file1 file2 ...')
+    print('COMMAND can be one of: upload, list, move, delete, rename')
 
 def get_access_token(auth_url, client_id, secret, refresh_token):
     """ Query onedrive api, return an oauth access token """
