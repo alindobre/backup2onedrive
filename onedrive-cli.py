@@ -88,7 +88,7 @@ def onedrive_upload(local_files, remote_destination):
 
 def onedrive_list(remote_folder, stdout=False):
     if not stdout:
-        listing = []
+        listing = {}
     link = f'https://graph.microsoft.com/v1.0/me/drive/root:{remote_folder}:/children'
     while link:
         r = requests.get(link, headers={'Authorization': 'bearer ' + access_token})
@@ -99,7 +99,7 @@ def onedrive_list(remote_folder, stdout=False):
             elif stdout:
                 print(item['name'])
             else:
-                listing.append((item['name'], item['id']))
+                listing[item['name']] = item['id']
         link = j['@odata.nextLink'] if '@odata.nextLink' in j else None
     if not stdout:
         return listing
