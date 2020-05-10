@@ -86,6 +86,25 @@ def onedrive_upload(local_files, remote_destination):
                     print(json.dumps(json.loads(r.content.decode('latin1')), indent=4))
 
 
+def onedrive_list(remote_folder, stdout=False):
+    if not stdout:
+        listing = []
+    link = f'https://graph.microsoft.com/v1.0/me/drive/root:{remote_folder}:/children'
+    while link:
+        r = requests.get(link, headers={'Authorization': 'bearer ' + access_token})
+        j = json.loads(r.content.decode('latin1'))
+        for item in j['value']:
+            if verbose:
+                print('-> ' + item['name'] + ' ' + item['id'])
+            elif stdout:
+                print(item['name'])
+            else:
+                listing.append((item['name'], item['id']))
+        link = j['@odata.nextLink'] if '@odata.nextLink' in j else None
+    if not stdout:
+        return listing
+
+
 if __name__ == '__main__':
     if len(sys.argv) == 1:
         usage()
@@ -122,16 +141,11 @@ if __name__ == '__main__':
         else:
             onedrive_upload(sys.argv[2:-1], sys.argv[-1])
     elif sys.argv[1] == 'list':
-        link = f'https://graph.microsoft.com/v1.0/me/drive/root:{folder}:/children'
-        while link:
-            r = requests.get(link, headers={'Authorization': 'bearer ' + access_token})
-            j = json.loads(r.content.decode('latin1'))
-            for item in j['value']:
-                if verbose:
-                    print('-> ' + item['name'] + ' ' + item['id'])
-                else:
-                    print(item['name'])
-            link = j['@odata.nextLink'] if '@odata.nextLink' in j else None
+        if folder:
+            onedrive_list(folder, stdout=True)
+        else:
+            for remote_folder in sys.argv[2:]:
+                onedrive_list(remote_folder, stdout=True)
     elif sys.argv[1] == 'move':
         dst = sys.argv[-1]
         src = sys.argv[2:-1]
