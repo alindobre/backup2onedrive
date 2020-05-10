@@ -28,7 +28,6 @@ def get_access_token(auth_url, client_id, secret, refresh_token):
 
     return r
 
-#http.client.HTTPConnection.debuglevel = 1
 config = json.load(open(os.sep.join([os.environ['HOME'], 'backup.json'])))
 access_token = get_access_token(
     'https://login.live.com/oauth20_token.srf',
@@ -71,15 +70,21 @@ if __name__ == '__main__':
     if len(sys.argv) == 1:
         usage()
         exit(1)
-    elif sys.argv[1] == 'upload':
+    verbose = False
+    if ('-v' in sys.argv):
+        verbose = True
+        sys.argv.remove('-v')
+    elif ('--verbose' in sys.argv):
+        verbose = True
+        sys.argv.remove('--verbose')
+    if ('-d' in sys.argv):
+        http.client.HTTPConnection.debuglevel = 1
+        sys.argv.remove('-d')
+    elif ('--debug' in sys.argv):
+        http.client.HTTPConnection.debuglevel = 1
+        sys.argv.remove('--debug')
+    if sys.argv[1] == 'upload':
         USIZE = 327680
-        verbose = False
-        if ('-v' in sys.argv):
-            verbose = True
-            sys.argv.remove('-v')
-        elif ('--verbose' in sys.argv):
-            verbose = True
-            sys.argv.remove('--verbose')
         for fpath in sys.argv[2:]:
             fsize = os.stat(fpath).st_size
             fname = os.path.basename(fpath)
@@ -111,7 +116,7 @@ if __name__ == '__main__':
             r = requests.get(link, headers={'Authorization': 'bearer ' + access_token})
             j = json.loads(r.content.decode('latin1'))
             for item in j['value']:
-                if len(sys.argv) > 2 and (sys.argv[2] == '-v' or sys.argv[2] == '--verbose'):
+                if verbose:
                     print('-> ' + item['name'] + ' ' + item['id'])
                 else:
                     print(item['name'])
