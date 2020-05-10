@@ -73,6 +73,13 @@ if __name__ == '__main__':
         exit(1)
     elif sys.argv[1] == 'upload':
         USIZE = 327680
+        verbose = False
+        if ('-v' in sys.argv):
+            verbose = True
+            sys.argv.remove('-v')
+        elif ('--verbose' in sys.argv):
+            verbose = True
+            sys.argv.remove('--verbose')
         for fpath in sys.argv[2:]:
             fsize = os.stat(fpath).st_size
             fname = os.path.basename(fpath)
@@ -93,10 +100,22 @@ if __name__ == '__main__':
                         'Content-Length': f'{len(data)}',
                         'Content-Range': f'bytes {start}-{end}/{fsize}'
                     }
-                    print(f'Uploading {fname}. Bytes {start}-{end}/{fsize} {int(end*100/fsize)}%')
+                    if verbose:
+                        print(f'Uploading {fname}. Bytes {start}-{end}/{fsize} {int(end*100/fsize)}%')
                     r = requests.put(uploadUrl, headers = headers, data = data)
                     if http.client.HTTPConnection.debuglevel:
                         print(json.dumps(json.loads(r.content.decode('latin1')), indent=4))
+    elif sys.argv[1] == 'list':
+        link = f'https://graph.microsoft.com/v1.0/me/drive/root:{folder}:/children'
+        while link:
+            r = requests.get(link, headers={'Authorization': 'bearer ' + access_token})
+            j = json.loads(r.content.decode('latin1'))
+            for item in j['value']:
+                if len(sys.argv) > 2 and (sys.argv[2] == '-v' or sys.argv[2] == '--verbose'):
+                    print('-> ' + item['name'] + ' ' + item['id'])
+                else:
+                    print(item['name'])
+            link = j['@odata.nextLink'] if '@odata.nextLink' in j else None
     else:
         usage()
         exit(1)
