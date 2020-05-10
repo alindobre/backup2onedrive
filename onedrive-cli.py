@@ -118,6 +118,12 @@ def onedrive_move(file_id, folder_id):
     if http.client.HTTPConnection.debuglevel:
         print(json.dumps(json.loads(r.content.decode('latin1')), indent=4))
 
+def onedrive_delete(object_id):
+    r = requests.delete(f'https://graph.microsoft.com/v1.0/me/drive/items/{object_id}',
+        headers={'Authorization': 'bearer ' + access_token})
+    if http.client.HTTPConnection.debuglevel:
+        print(json.dumps(json.loads(r.content.decode('latin1')), indent=4))
+
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
@@ -173,6 +179,13 @@ if __name__ == '__main__':
         for item in src_items:
             if item in listing:
                 onedrive_move(listing[item], folder_id)
+    elif sys.argv[1] == 'delete':
+        src_folder = sys.argv[2]
+        items = sys.argv[3:]
+        listing = onedrive_list(src_folder)
+        for item in items:
+            if item in listing;
+                onedrive_delete(listing[item])
     else:
         usage()
         exit(1)
