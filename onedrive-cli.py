@@ -111,6 +111,7 @@ def onedrive_mkdir(src_folder, dst_folder):
     j = json.loads(r.content.decode('latin1'))
     return j['id']
 
+
 if __name__ == '__main__':
     if len(sys.argv) == 1:
         usage()
@@ -153,40 +154,22 @@ if __name__ == '__main__':
             for remote_folder in sys.argv[2:]:
                 onedrive_list(remote_folder, stdout=True)
     elif sys.argv[1] == 'move':
-        dst = sys.argv[-1]
-        src = sys.argv[2:-1]
-        link = f'https://graph.microsoft.com/v1.0/me/drive/root:{folder}:/children'
-        l = {}
-        while link:
-            r = requests.get(link, headers={'Authorization': 'bearer ' + access_token})
-            j = json.loads(r.content.decode('latin1'))
-            for item in j['value']:
-                l[item['name']]=item['id']
-            link = j['@odata.nextLink'] if '@odata.nextLink' in j else None
-
-        if dst not in l:
-            print('Create folder:', folder + '/' + dst)
-            payload = '{"name": "' + dst + '", "folder": { }, "@microsoft.graph.conflictBehavior": "rename" }'
-            r = requests.post(f'https://graph.microsoft.com/v1.0/me/drive/root:{folder}:/children', data = payload,
-                headers={'Authorization': 'bearer ' + access_token, 'Content-Type': 'application/json'})
-            j = json.loads(r.content.decode('latin1'))
-            dstid = j['id']
+        src_folder = sys.argv[2]
+        src_items = sys.argv[3:-1]
+        dst_folder = sys.argv[-1]
+        listing = onedrive_list(src_folder)
+        if dst_folder not in listing:
+            folder_id = onedrive_mkdir(src_folder, dst_folder)
         else:
-            dstid = l[dst]
+            folder_id = listing[dst_folder]
 
-        http.client.HTTPConnection.debuglevel = 1
-        for item in l:
-            if item in src:
-                print('----------------> ' + item + ' ' + l[item])
-                #payload = '{"parentReference": { "id": "{new-parent-folder-id}" }, "name": "new-item-name.txt"}'
-                payload = '{"parentReference": { "id": "' + dstid + '" }}'
-                r = requests.patch(f'https://graph.microsoft.com/v1.0/me/drive/items/{l[item]}', data = payload,
+        for item in src_items:
+            if item in listing:
+                payload = '{"parentReference": { "id": "' + folder_id + '" }}'
+                r = requests.patch(f'https://graph.microsoft.com/v1.0/me/drive/items/{listing[item]}', data = payload,
                     headers={'Authorization': 'bearer ' + access_token, 'Content-Type': 'application/json'})
                 if http.client.HTTPConnection.debuglevel:
                     print(json.dumps(json.loads(r.content.decode('latin1')), indent=4))
-            else:
-                print('nothin to move')
-
     else:
         usage()
         exit(1)
