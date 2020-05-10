@@ -28,18 +28,6 @@ def get_access_token(auth_url, client_id, secret, refresh_token):
 
     return r
 
-config = json.load(open(os.sep.join([os.environ['HOME'], 'backup.json'])))
-access_token = get_access_token(
-    'https://login.live.com/oauth20_token.srf',
-    config['onedrive']['client_id'],
-    config['onedrive']['client_secret'],
-    config['onedrive']['refresh_token']
-)
-
-folder = None
-if 'root_folder' in config['onedrive']:
-    folder = config['onedrive']['root_folder']
-
 """
 print('Create folder:')
 payload = '{"name": "New Folder", "folder": { }, "@microsoft.graph.conflictBehavior": "rename" }'
@@ -115,6 +103,19 @@ if __name__ == '__main__':
     elif ('--debug' in sys.argv):
         http.client.HTTPConnection.debuglevel = 1
         sys.argv.remove('--debug')
+
+    config = json.load(open(os.sep.join([os.environ['HOME'], 'backup.json'])))
+    access_token = get_access_token(
+        'https://login.live.com/oauth20_token.srf',
+        config['onedrive']['client_id'],
+        config['onedrive']['client_secret'],
+        config['onedrive']['refresh_token']
+    )
+
+    folder = None
+    if 'root_folder' in config['onedrive']:
+        folder = config['onedrive']['root_folder']
+
     if sys.argv[1] == 'upload':
         if folder:
             onedrive_upload(sys.argv[2:], folder)
