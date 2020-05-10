@@ -104,6 +104,12 @@ def onedrive_list(remote_folder, stdout=False):
     if not stdout:
         return listing
 
+def onedrive_mkdir(src_folder, dst_folder):
+    payload = '{"name": "' + dst_folder + '", "folder": { }, "@microsoft.graph.conflictBehavior": "rename" }'
+    r = requests.post(f'https://graph.microsoft.com/v1.0/me/drive/root:{src_folder}:/children', data = payload,
+        headers={'Authorization': 'bearer ' + access_token, 'Content-Type': 'application/json'})
+    j = json.loads(r.content.decode('latin1'))
+    return j['id']
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
