@@ -121,6 +121,41 @@ if __name__ == '__main__':
                 else:
                     print(item['name'])
             link = j['@odata.nextLink'] if '@odata.nextLink' in j else None
+    elif sys.argv[1] == 'move':
+        dst = sys.argv[-1]
+        src = sys.argv[2:-1]
+        link = f'https://graph.microsoft.com/v1.0/me/drive/root:{folder}:/children'
+        l = {}
+        while link:
+            r = requests.get(link, headers={'Authorization': 'bearer ' + access_token})
+            j = json.loads(r.content.decode('latin1'))
+            for item in j['value']:
+                l[item['name']]=item['id']
+            link = j['@odata.nextLink'] if '@odata.nextLink' in j else None
+
+        if dst not in l:
+            print('Create folder:', folder + '/' + dst)
+            payload = '{"name": "' + dst + '", "folder": { }, "@microsoft.graph.conflictBehavior": "rename" }'
+            r = requests.post(f'https://graph.microsoft.com/v1.0/me/drive/root:{folder}:/children', data = payload,
+                headers={'Authorization': 'bearer ' + access_token, 'Content-Type': 'application/json'})
+            j = json.loads(r.content.decode('latin1'))
+            dstid = j['id']
+        else:
+            dstid = l[dst]
+
+        http.client.HTTPConnection.debuglevel = 1
+        for item in l:
+            if item in src:
+                print('----------------> ' + item + ' ' + l[item])
+                #payload = '{"parentReference": { "id": "{new-parent-folder-id}" }, "name": "new-item-name.txt"}'
+                payload = '{"parentReference": { "id": "' + dstid + '" }}'
+                r = requests.patch(f'https://graph.microsoft.com/v1.0/me/drive/items/{l[item]}', data = payload,
+                    headers={'Authorization': 'bearer ' + access_token, 'Content-Type': 'application/json'})
+                if http.client.HTTPConnection.debuglevel:
+                    print(json.dumps(json.loads(r.content.decode('latin1')), indent=4))
+            else:
+                print('nothin to move')
+
     else:
         usage()
         exit(1)
