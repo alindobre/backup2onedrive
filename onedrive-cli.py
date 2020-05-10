@@ -111,6 +111,13 @@ def onedrive_mkdir(src_folder, dst_folder):
     j = json.loads(r.content.decode('latin1'))
     return j['id']
 
+def onedrive_move(file_id, folder_id):
+    payload = '{"parentReference": { "id": "' + folder_id + '" }}'
+    r = requests.patch(f'https://graph.microsoft.com/v1.0/me/drive/items/{file_id}', data = payload,
+        headers={'Authorization': 'bearer ' + access_token, 'Content-Type': 'application/json'})
+    if http.client.HTTPConnection.debuglevel:
+        print(json.dumps(json.loads(r.content.decode('latin1')), indent=4))
+
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
@@ -165,11 +172,7 @@ if __name__ == '__main__':
 
         for item in src_items:
             if item in listing:
-                payload = '{"parentReference": { "id": "' + folder_id + '" }}'
-                r = requests.patch(f'https://graph.microsoft.com/v1.0/me/drive/items/{listing[item]}', data = payload,
-                    headers={'Authorization': 'bearer ' + access_token, 'Content-Type': 'application/json'})
-                if http.client.HTTPConnection.debuglevel:
-                    print(json.dumps(json.loads(r.content.decode('latin1')), indent=4))
+                onedrive_move(listing[item], folder_id)
     else:
         usage()
         exit(1)
