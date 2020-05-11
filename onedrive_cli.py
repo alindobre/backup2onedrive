@@ -101,12 +101,12 @@ def onedrive_delete(object_id):
     if http.client.HTTPConnection.debuglevel:
         print(json.dumps(json.loads(r.content.decode('latin1')), indent=4))
 
-
+access_token = None
+verbose = False
 if __name__ == '__main__':
     if len(sys.argv) == 1:
         usage()
         exit(1)
-    verbose = False
     if ('-v' in sys.argv):
         verbose = True
         sys.argv.remove('-v')
