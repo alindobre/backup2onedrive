@@ -47,6 +47,11 @@ if __name__ == '__main__':
                 if item[:13] not in destinations:
                     destinations[item[:13]] = []
                 destinations[item[:13]].append(item)
+        if item.startswith('mysql-') and item.endswith('.dump.xz'):
+            if not item.startswith('mysql-' + datetime.date.today().strftime('%Y-%V')):
+                if item[:13] not in destinations:
+                    destinations[item[:13]] = []
+                destinations[item[:13]].append(item)
     for dest in destinations:
         if dest not in listing:
             folder_id = onedrive_cli.onedrive_mkdir(folder, dest)
